@@ -5,10 +5,13 @@ import { Task } from 'src/tasks/task.entity';
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ unique: true })
-  email: string;
+
   @Column()
-  password: string;
+  name: string;
+
+  // @OneToMany : un User possède plusieurs Tasks.
+  // 1er arg : entité cible (Task)
+  // 2e arg : propriété inverse dans Task qui pointe vers User
   @OneToMany(() => Task, (task) => task.user)
   tasks: Task[];
 }
