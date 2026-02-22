@@ -1,15 +1,9 @@
-import {
-  IsString,
-  IsBoolean,
-  IsOptional,
-  MaxLength,
-  IsNotEmpty,
-} from 'class-validator';
-//Dans les DTO les décorateur de la bibli class-validator impose les règles.
+import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
+
+// IsOptional : le champ peut être absent (mais s'il est présent, les autres règles s'appliquent)
 export class UpdateTaskDto {
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(100)
   title?: string;
 
