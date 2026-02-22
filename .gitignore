@@ -54,3 +54,24 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# TypeScript
+*.tsbuildinfo
+
+# dotenv - variantes supplémentaires
+.env.development
+.env.production
+.env.staging
+.env.test
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Tests
+/test-results
+junit.xml
+
+# claude
+.claude/
+.mcp/
