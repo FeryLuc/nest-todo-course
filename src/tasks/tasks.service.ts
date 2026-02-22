@@ -1,47 +1,49 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './task.entity';
-import { UpdateTaskDto } from './dto/update-task.dto';
-//Certaines méthodes sont async d'autre non => Si je manipule la donnée à ce niveau, j'attend le résultat (donc on async). Si j'ai pas besoin de la manipuler, je le retourne normalement et je l'attendrai uniquement là où j'ai besoin de la traiter ou alors en bout de chaine ! (normalement nest, attend tout seul en bout de chaine)
+
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task) private taskRepository: Repository<Task>,
   ) {}
 
-  findAll(userId: number): Promise<Task[]> {
-    return this.taskRepository.find({ where: { userId } });
+  // PAS de async : on retourne directement la Promise.
+  // NestJS sait résoudre une Promise retournée par un controller.
+  // Inutile d'async/await si on ne manipule pas le résultat localement.
+  findAll(): Promise<Task[]> {
+    return this.taskRepository.find();
   }
-  async findOne(id: number, userId: number): Promise<Task> {
+
+  // PAS de async : même raison — la Promise est retournée directement.
+  create(title: string): Promise<Task> {
+    const task = this.taskRepository.create({ title });
+    return this.taskRepository.save(task);
+  }
+
+  // async NÉCESSAIRE : on doit awaiter findOne pour tester si la tâche existe
+  // avant de lancer une exception. On a besoin de la valeur pour prendre une décision.
+  async findOne(id: number): Promise<Task> {
     const task = await this.taskRepository.findOne({ where: { id } });
     if (!task) {
       throw new NotFoundException(`Tâche #${id} introuvable`);
     }
-    if (task.userId !== userId) {
-      throw new ForbiddenException('Accès refusé');
-    }
     return task;
   }
-  create(title: string, userId: number): Promise<Task> {
-    const task = this.taskRepository.create({ title, userId });
-    return this.taskRepository.save(task);
-  }
-  async update(
-    id: number,
-    attrs: Partial<Task>,
-    userId: number,
-  ): Promise<Task> {
-    const task = await this.findOne(id, userId);
+
+  // async NÉCESSAIRE : on doit awaiter findOne (dépendance sur le résultat),
+  // puis awaiter save après modification.
+  async update(id: number, attrs: Partial<Task>): Promise<Task> {
+    const task = await this.findOne(id); // dépend du résultat de findOne
     Object.assign(task, attrs);
-    return this.taskRepository.save(task);
+    return this.taskRepository.save(task); // Promise retournée directement (pas d'await nécessaire ici)
   }
-  async remove(id: number, userId: number): Promise<void> {
-    const task = await this.findOne(id, userId);
+
+  // async NÉCESSAIRE : on doit awaiter findOne, puis awaiter remove.
+  // remove() retourne void donc pas besoin de retourner la Promise.
+  async remove(id: number): Promise<void> {
+    const task = await this.findOne(id);
     await this.taskRepository.remove(task);
   }
 }
