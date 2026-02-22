@@ -5,8 +5,9 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  // Retourne le nom de l'app et le port depuis les variables d'environnement
+  @Get('config')
+  getConfig() {
+    return this.appService.getConfig();
   }
 }
