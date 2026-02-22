@@ -2,46 +2,52 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Task } from './task.entity';
-import { UpdateTaskDto } from './dto/update-task.dto';
-//Certaines méthodes sont async d'autre non => Si je manipule la donnée à ce niveau, j'attend le résultat (donc on async). Si j'ai pas besoin de la manipuler, je le retourne normalement et je l'attendrai uniquement là où j'ai besoin de la traiter ou alors en bout de chaine ! (normalement nest, attend tout seul en bout de chaine)
+
+interface Task { id: number; title: string; done: boolean; userId: number; }
+
 @Injectable()
 export class TasksService {
-  constructor(
-    @InjectRepository(Task) private taskRepository: Repository<Task>,
-  ) {}
+  private tasks: Task[] = [];
+  private nextId = 1;
 
-  findAll(userId: number): Promise<Task[]> {
-    return this.taskRepository.find({ where: { userId } });
-  }
-  async findOne(id: number, userId: number): Promise<Task> {
-    const task = await this.taskRepository.findOne({ where: { id } });
-    if (!task) {
-      throw new NotFoundException(`Tâche #${id} introuvable`);
-    }
-    if (task.userId !== userId) {
-      throw new ForbiddenException('Accès refusé');
-    }
+  findAll(): Task[] { return this.tasks; }
+
+  // NotFoundException (404) : ressource introuvable
+  findOne(id: number): Task {
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) throw new NotFoundException(`Tâche #${id} introuvable`);
     return task;
   }
-  create(title: string, userId: number): Promise<Task> {
-    const task = this.taskRepository.create({ title, userId });
-    return this.taskRepository.save(task);
+
+  create(title: string, userId: number): Task {
+    // UnauthorizedException (401) : userId manquant = non authentifié
+    if (!userId) throw new UnauthorizedException('Vous devez être connecté pour créer une tâche');
+    const task: Task = { id: this.nextId++, title, done: false, userId };
+    this.tasks.push(task);
+    return task;
   }
-  async update(
-    id: number,
-    attrs: Partial<Task>,
-    userId: number,
-  ): Promise<Task> {
-    const task = await this.findOne(id, userId);
+
+  // ConflictException (409) : doublon détecté
+  createAndCheckDuplicate(title: string, userId: number): Task {
+    const exists = this.tasks.some((t) => t.title === title && t.userId === userId);
+    if (exists) throw new ConflictException(`Une tâche avec le titre "${title}" existe déjà`);
+    return this.create(title, userId);
+  }
+
+  // ForbiddenException (403) : ressource trouvée mais accès refusé
+  update(id: number, userId: number, attrs: Partial<Task>): Task {
+    const task = this.findOne(id);
+    if (task.userId !== userId) throw new ForbiddenException('Vous ne pouvez pas modifier cette tâche');
     Object.assign(task, attrs);
-    return this.taskRepository.save(task);
+    return task;
   }
-  async remove(id: number, userId: number): Promise<void> {
-    const task = await this.findOne(id, userId);
-    await this.taskRepository.remove(task);
+
+  remove(id: number, userId: number): void {
+    const task = this.findOne(id);
+    if (task.userId !== userId) throw new ForbiddenException('Vous ne pouvez pas supprimer cette tâche');
+    this.tasks = this.tasks.filter((t) => t.id !== id);
   }
 }
