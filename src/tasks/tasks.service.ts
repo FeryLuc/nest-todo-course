@@ -33,7 +33,7 @@ export class TasksService {
   }
   async update(
     id: number,
-    attrs: Partial<Task>,
+    attrs: UpdateTaskDto,
     userId: number,
   ): Promise<Task> {
     const task = await this.findOne(id, userId);

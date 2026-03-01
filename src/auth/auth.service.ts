@@ -16,21 +16,21 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    // 1. Est-ce que le user existe ?
+    // Est-ce que le user existe ?
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
-    // 2. Est-ce que le mot de passe est correct ?
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Est-ce que le mot de passe est correct ?
+    const isPasswordValid = await bcrypt.compare(password, user.password); // compare extraitle salt et le cost(round), rehashe le mot de passe fournit avec le salt et cost puis compare avec celui en db.
     if (!isPasswordValid) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
-    //3. Générer le token JWT.
-    const payload = { sub: user.id, email: user.email };
-    const token = this.jwtService.sign(payload);
+    //Générer le token JWT.
+    const payload = { sub: user.id, email: user.email }; //les données qu'on embarque dans le token. sub c'est une propriété par convention qui représenter l'identifiant.
+    const token = this.jwtService.sign(payload); //crée le token avec ce payload. token = header(algo + type), payload(les données embarquées), signature (avec le secret).
 
     return { acces_token: token };
   }

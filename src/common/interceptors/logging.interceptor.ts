@@ -19,9 +19,9 @@ export class LoggingInterceptor implements NestInterceptor {
 
     this.logger.log(`-> ${method} ${url}`);
 
-    //next.handle() passe la mains et retourn un Observable. (RxJS)
+    //next.handle() passe la main au handler suivant et retourne un Observable. (RxJS)
     return next.handle().pipe(
-      //S'exécute après que le controller a rpéondu. tap observe la réponse  sans la modifier
+      //S'exécute après que le controller ait répondu. tap observe la réponse sans la modifier (side-effect only)
       tap(() => {
         const ms = Date.now() - now;
         this.logger.log(`<- ${method} ${url} [${ms}ms]`);

@@ -2,6 +2,11 @@
 
 API REST de gestion de tâches construite avec NestJS dans un contexte d'apprentissage.
 
+- Comprendre l'architecture NestJS.
+- Comprendre les principaux concepts de fonctionnement.
+- Prendre connaissance des différents intervenants/concepts pour une mise en production acceptable.
+- Prendre conscience de l'après production : tout ce qu'il reste à faire pour un projet optimal.
+
 ## Stack
 
 - **NestJS 11** — framework Node.js
@@ -35,6 +40,8 @@ PORT=3000
 NODE_ENV=development
 ```
 
+> `synchronize: true` est activé — TypeORM crée et met à jour automatiquement le schéma à chaque démarrage. Aucune migration manuelle nécessaire pour tester en local.
+
 ## Lancer le projet
 
 ```bash
@@ -48,7 +55,7 @@ npm run start:prod
 
 ## Documentation API
 
-Swagger UI disponible sur `http://localhost:3000/api` (hors production).
+Swagger UI disponible sur `http://localhost:3000/api` lorsque `NODE_ENV=development` (valeur par défaut du `.env` fourni ci-dessus).
 
 ## Tests
 

@@ -8,7 +8,7 @@ export class Task {
   title: string;
   @Column({ default: false })
   done: boolean;
-  //1er arg: spécifie a typeorm qelle entité est de l'autre coté de la relation. C'est spécifié la dite relation. 2e arg: indique la propriété sui pointe ici.
+  //1er arg: spécifie a typeorm quelle entité est de l'autre coté de la relation. 2e arg: indique la propriété qui pointe ici (dans l'entité user, il y aura une propriété tasks qui contient des Task).
   @ManyToOne(() => User, (user) => user.tasks)
   user: User;
   @Column()

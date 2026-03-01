@@ -9,14 +9,14 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    UsersModule, //On l'importe pour accédé au service exporté.
+    UsersModule, //On l'importe pour accéder au service exporté.
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') }, // le token expire dans 7j
+        secret: configService.get('JWT_SECRET'), //Permet de signer un token.
+        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') }, // le token expire en fonction de la valeur de la variable d'environnement
       }),
     }),
   ],
